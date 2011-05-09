@@ -2,11 +2,11 @@ RailsAdmin
 ==========
 RailsAdmin is a Rails engine that provides an easy-to-use interface for managing your data.
 
-RailsAdmin started as a port of [MerbAdmin](http://github.com/sferik/merb-admin) to Rails 3
+RailsAdmin started as a port of [MerbAdmin](https://github.com/sferik/merb-admin) to Rails 3
 and was implemented as a [Ruby Summer of Code project](http://www.rubysoc.org/projects)
-by [Bogdan Gaza](http://github.com/hurrycane) with mentors [Erik Michaels-Ober](http://github.com/sferik),
-[Yehuda Katz](http://github.com/wycats),
-[Luke van der Hoeven](http://github.com/plukevdh), and [Rein Henrichs](http://github.com/reinh).
+by [Bogdan Gaza](https://github.com/hurrycane) with mentors [Erik Michaels-Ober](https://github.com/sferik),
+[Yehuda Katz](https://github.com/wycats),
+[Luke van der Hoeven](https://github.com/plukevdh), and [Rein Henrichs](https://github.com/reinh).
 
 It currently offers the following features:
 
@@ -16,7 +16,7 @@ It currently offers the following features:
 * Safely delete data
 * Automatic form validation
 * Search
-* Authentication (via [Devise](http://github.com/plataformatec/devise))
+* Authentication (via [Devise](https://github.com/plataformatec/devise))
 * User action history
 
 Supported ORMs:
@@ -53,36 +53,41 @@ Screenshots
 
 Installation
 ------------
-In your `Gemfile`, add the following dependency:
+In your `Gemfile`, add the following dependencies:
+
     gem 'devise' # Devise must be required before RailsAdmin
     gem 'rails_admin', :git => 'git://github.com/sferik/rails_admin.git'
+
 Run:
+
     $ bundle install
+
 And then run:
-    $ rails generate rails_admin:install_admin
-This task will install RailsAdmin and [Devise](http://github.com/plataformatec/devise) if you
-don't already have it installed. [Devise](http://github.com/plataformatec/devise) is strongly
+
+    $ rake rails_admin:install
+
+This task will install RailsAdmin and [Devise](https://github.com/plataformatec/devise) if you
+don't already have it installed. [Devise](https://github.com/plataformatec/devise) is strongly
 recommended to protect your data from anonymous users.
 
 If you plan to use Devise, but want to use a custom model for authentication
 (default is User) you can provide that as an argument for the installer. For example
 to override the default with a Member model run:
-    $ rails generate rails_admin:install_admin member
+
+    $ rake rails_admin:install model_name=member
 
 If you want to use the CKEditor, you need to [download it](http://ckeditor.com/download) from source
 and unpack the 'ckeditor' folder into your default 'public/javascripts' folder. If you're using any
 non-Windows system, you can try to use the automatic downloader:
-    $ rake admin:ckeditor_download
 
-When running RailsAdmin in production the images, stylesheets, and javascript assets may return 404
-not found error's depending on your servers static assets configuration.  To prevent this issue you
-can copy assets directly into your application by running:
-    $ rake admin:copy_assets
-        
+    $ rake rails_admin:ckeditor_download
+
 Usage
 -----
 Start the server:
+
     $ rails server
+
 You should now be able to administer your site at <http://localhost:3000/admin>
 
 Configuration
@@ -92,6 +97,7 @@ models and following some Rails conventions. For a more tailored experience, it 
 configuration DSL which allows you to customize many aspects of the interface.
 
 The configuration code should be placed in an initializer file, for example:
+
     config/initializers/rails_admin.rb
 
 
@@ -108,6 +114,29 @@ You can exclude models from RailsAdmin by appending those models to `excluded_mo
       config.excluded_models << ClassName
     end
 
+**Whitelist Approach**
+
+By default, RailsAdmin automatically discovers all the models in the system and adds them to its list of models to
+be accessible through RailsAdmin. The `excluded_models` configuration above permits the blacklisting of individual model classes.
+
+If you prefer a whitelist approach, then you can use the `included_models` configuration option instead:
+
+    RailsAdmin.config do |config|
+      config.included_models = [Class1, Class2, Class3]
+    end
+
+Only the models explicitly listed will be put under RailsAdmin access, and the auto-discovery of models is skipped.
+
+The blacklist is effective on top of that, still, so that if you also have:
+
+    RailsAdmin.config do |config|
+      config.excluded_models = [Class1]
+    end
+
+then only `Class2` and `Class3` would be made available to RailsAdmin.
+
+The whitelist approach may be useful if RailsAdmin is used only for a part of the application and you want to make
+sure that new models are not automatically added to RailsAdmin, e.g. because of security concerns.
 
 ### Model Class and Instance Labels ###
 
@@ -208,6 +237,70 @@ tabs. Even though this option is not model specific, it shares the same
 semantics as the earlier ones - you could also pass in a block which would be
 evaluated at runtime.
 
+**Create a dropdown menu in navigation**
+
+This will desactivate config.navigation.max_visible_tabs.
+
+    RailsAdmin.config do |config|
+      config.model Team do
+        parent League
+      end
+    end
+
+    RailsAdmin.config do |config|
+      config.model Division do
+        parent League
+      end
+    end
+
+Obtained navigation:
+
+    Dashboard
+    ...
+    League
+      Division
+      Team
+    ...
+
+If you want a non-clickable root menu entry, add 'dropdown ENTRY_NAME' to your parent.
+Your parent will then be placed INSIDE his dropdown, in FIRST position.
+
+Added to previous example:
+
+    RailsAdmin.config do |config|
+      config.model League do
+        dropdown 'League related'
+      end
+    end
+
+Obtained navigation:
+
+    Dashboard
+    ...
+    League related  # (non-clickable)
+      League
+      Division
+      Team
+    ...
+
+**Change models order in navigation**
+
+By default, they are ordered by alphabetical order. If you need to override this, specify
+a weight attribute. Default is 0. Lower values will bubble items to the left, higher values
+will move them to the right. Items with same weight will still be ordered by alphabetical order.
+The mecanism is fully compatible with dropdown menus. Items will be ordered within their own
+menu subset.
+
+Example:
+
+    RailsAdmin.config do |config|
+      config.model League do
+        dropdown 'League related'
+        weight -1
+      end
+    end
+
+The 'League related' dropdown menu will move to the leftmost position.
 
 ### List view ###
 
@@ -817,15 +910,15 @@ Here are some ways *you* can contribute:
 * by writing specifications
 * by writing code (**no patch is too small**: fix typos, add comments, clean up inconsistent whitespace)
 * by refactoring code
-* by resolving [issues](http://github.com/sferik/rails_admin/issues)
+* by resolving [issues](https://github.com/sferik/rails_admin/issues)
 * by reviewing patches
 
 Submitting an Issue
 -------------------
-We use the [GitHub issue tracker](http://github.com/sferik/rails_admin/issues) to track bugs and
+We use the [GitHub issue tracker](https://github.com/sferik/rails_admin/issues) to track bugs and
 features. Before submitting a bug report or feature request, check to make sure it hasn't already
 been submitted. You can indicate support for an existing issue by voting it up. When submitting a
-bug report, please include a [Gist](http://gist.github.com/) that includes a stack trace and any
+bug report, please include a [Gist](https://gist.github.com/) that includes a stack trace and any
 details that may be necessary to reproduce the bug, including your gem version, Ruby version, and
 operating system. Ideally, a bug report should include a pull request with failing specs.
 
@@ -843,4 +936,4 @@ Submitting a Pull Request
 
 Contact
 -------
-If you have questions about contributing to RailsAdmin, please contact [Erik Michaels-Ober](http://github.com/sferik) and [Bogdan Gaza](http://github.com/hurrycane).
+If you have questions about contributing to RailsAdmin, please contact [Erik Michaels-Ober](https://github.com/sferik) and [Bogdan Gaza](https://github.com/hurrycane).
